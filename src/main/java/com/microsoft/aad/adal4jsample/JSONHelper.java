@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,14 +45,14 @@ public class JSONHelper {
     private static Logger logger = Logger.getLogger(JSONHelper.class);
 
     JSONHelper() {
-        // PropertyConfigurator.configure("log4j.properties");
+         PropertyConfigurator.configure("log4j.properties");
     }
 
     /**
      * This method parses an JSON Array out of a collection of JSON Objects
      * within a string.
      * 
-     * @param jSonData
+     * @param jsonObject
      *            The JSON String that holds the collection.
      * @return An JSON Array that would contains all the collection object.
      * @throws Exception
@@ -79,7 +80,7 @@ public class JSONHelper {
     /**
      * This method parses the skip token from a json formatted string.
      * 
-     * @param jsonData
+     * @param jsonObject
      *            The JSON Formatted String.
      * @return The skipToken.
      * @throws Exception

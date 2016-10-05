@@ -19,6 +19,7 @@
  ******************************************************************************/
 package com.microsoft.aad.adal4jsample;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -27,10 +28,12 @@ import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -41,7 +44,9 @@ import com.microsoft.aad.adal4j.AuthenticationResult;
 public class AadController {
 
 
-    @RequestMapping(method = { RequestMethod.GET, RequestMethod.POST })
+    private static Logger logger = Logger.getLogger(AadController.class);
+
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST})
     public String getDirectoryObjects(ModelMap model, HttpServletRequest httpRequest) {
 
         HttpSession session = httpRequest.getSession();
@@ -54,6 +59,9 @@ public class AadController {
             try {
                 data = this.getUsernamesFromGraph(result.getAccessToken(), session.getServletContext()
                         .getInitParameter("tenant"));
+                this.getUserApplicationRoles(result.getAccessToken(), session.getServletContext()
+                        .getInitParameter("tenant"));
+                System.out.println("data : " + data);
                 model.addAttribute("users", data);
             } catch (Exception e) {
                 model.addAttribute("error", e);
@@ -63,18 +71,66 @@ public class AadController {
         return "/secure/aad";
     }
 
-    private String getUsernamesFromGraph(String accessToken, String tenant) throws Exception {
-        URL url = new URL(String.format("https://graph.windows.net/%s/users?api-version=2013-04-05", tenant,
-                accessToken));
-        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", 3128));
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection(proxy);
 
-        // Set the appropriate header fields in the request header.
-        conn.setRequestProperty("api-version", "2013-04-05");
-        conn.setRequestProperty("Authorization", accessToken);
-        conn.setRequestProperty("Accept", "application/json;odata=minimalmetadata");
+    private String getUserApplicationRoles(String accessToken, String tenant) throws Exception {
+
+        //get info of the logged in user - we are interested in Object ID
+        String urlPath = "https://graph.windows.net/me?api-version=1.6";
+        HttpURLConnection conn = getHttpURLConnection(accessToken, tenant, urlPath);
         String goodRespStr = HttpClientHelper.getResponseStringFromConn(conn, true);
-        // logger.info("goodRespStr ->" + goodRespStr);
+        logger.info("logged in user :  -> " + goodRespStr);
+        int responseCode = conn.getResponseCode();
+        JSONObject response = HttpClientHelper.processGoodRespStr(responseCode, goodRespStr);
+        JSONObject userJsonObject = JSONHelper.fetchDirectoryObjectJSONObject(response);
+        User user = new User();
+        JSONHelper.convertJSONObjectToDirectoryObject(userJsonObject, user);
+        System.out.println(user.getObjectId());
+        System.out.println(user.getUserPrincipalName());
+        logger.info(user.getObjectId());
+        logger.info(user.getUserPrincipalName());
+
+        urlPath = "https://graph.windows.net/%s/users/" + user.getObjectId() + "/appRoleAssignments?api-version=1.6";
+        conn = getHttpURLConnection(accessToken, tenant, urlPath);
+        goodRespStr = HttpClientHelper.getResponseStringFromConn(conn, true);
+        response = HttpClientHelper.processGoodRespStr(responseCode, goodRespStr);
+
+        JSONArray users  = JSONHelper.fetchDirectoryObjectJSONArray(response);
+
+        JSONObject thisUserJSONObject = users.optJSONObject(1);
+        System.out.println(thisUserJSONObject.get("resourceDisplayName"));
+
+
+        logger.info("app roles assigned user :  -> " + goodRespStr);
+
+
+        //urlPath = "https://graph.windows.net/%s/servicePrincipals?api-version=1.6&$filter=displayName+eq+'adal4jsamplevero'";
+        urlPath = "https://graph.windows.net/%s/servicePrincipals?api-version=1.6&$filter=displayName+eq+'" + thisUserJSONObject.get("resourceDisplayName")  + "'";
+        //urlPath = "https://graph.windows.net/%s/servicePrincipals?api-version=1.6";
+        conn = getHttpURLConnection(accessToken, tenant, urlPath);
+        goodRespStr = HttpClientHelper.getResponseStringFromConn(conn, true);
+        response = HttpClientHelper.processGoodRespStr(responseCode, goodRespStr);
+
+        users  = JSONHelper.fetchDirectoryObjectJSONArray(response);
+
+         thisUserJSONObject = users.optJSONObject(0);
+        //JSONHelper.convertJSONObjectToDirectoryObject(thisUserJSONObject);
+         System.out.println(thisUserJSONObject.get("appRoles"));
+        System.out.println(thisUserJSONObject.get("resourceDisplayName"));
+
+        logger.info("app roles for the web app :  -> " + goodRespStr);
+
+
+
+        return null;
+    }
+
+    private String getUsernamesFromGraph(String accessToken, String tenant) throws Exception {
+      //  String urlPath = "https://graph.windows.net/me?api-version=1.6";
+        String urlPath = "https://graph.windows.net/%s/users?api-version=2013-04-05";
+
+        HttpURLConnection conn = getHttpURLConnection(accessToken, tenant, urlPath);
+        String goodRespStr = HttpClientHelper.getResponseStringFromConn(conn, true);
+        logger.info("goodRespStr -> " + goodRespStr);
         int responseCode = conn.getResponseCode();
         JSONObject response = HttpClientHelper.processGoodRespStr(responseCode, goodRespStr);
         JSONArray users = new JSONArray();
@@ -87,9 +143,34 @@ public class AadController {
             JSONObject thisUserJSONObject = users.optJSONObject(i);
             user = new User();
             JSONHelper.convertJSONObjectToDirectoryObject(thisUserJSONObject, user);
-            builder.append(user.getUserPrincipalName() + "<br/>");
+            builder.append("User Principal Name : " + user.getUserPrincipalName() + "<br/>");
+            builder.append("Job Title : " + user.getJobTitle() + "<br/>");
+            builder.append("Department : " + user.getDepartment() + "<br/>");
+            //builder.append("Roles : " + user.getRoles().size() + "<br/>");
+            builder.append("<br/><br/>");
+          //  System.out.println(user.getRoles().size());
+
+            // https://graph.windows.net/myorganization/users/{user_id}/$links/memberOf
+
+
         }
+
+        urlPath = "https://graph.windows.net/me?api-version=1.6";
         return builder.toString();
     }
+
+    private HttpURLConnection getHttpURLConnection(String accessToken, String tenant, String urlPath) throws IOException {
+        URL url = new URL(String.format(urlPath, tenant,
+                accessToken));
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("localhost", 3128));
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection(proxy);
+
+        // Set the appropriate header fields in the request header.
+        conn.setRequestProperty("api-version", "2013-04-05");
+        conn.setRequestProperty("Authorization", accessToken);
+        conn.setRequestProperty("Accept", "application/json;odata=minimalmetadata");
+        return conn;
+    }
+
 
 }

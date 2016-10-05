@@ -19,20 +19,20 @@
  ******************************************************************************/
 package com.microsoft.aad.adal4jsample;
 
+import org.json.JSONObject;
+
 import java.security.acl.Group;
 import java.util.ArrayList;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.json.JSONObject;
 
 /**
  *  The User Class holds together all the members of a WAAD User entity and all the access methods and set methods
  *  @author Azure Active Directory Contributor
  */
 @XmlRootElement
-public class User extends DirectoryObject{
-	
+public class AppRole extends DirectoryObject{
+
 	// The following are the individual private members of a User object that holds
 	// a particular simple attribute of an User object.
 	protected String objectId;
@@ -68,21 +68,21 @@ public class User extends DirectoryObject{
 	 */
 	// managerDisplayname of this user
 	protected String managerDisplayname;
-	
+
 	// The directReports holds a list of directReports
-	private ArrayList<User> directReports;
-	
-	// The groups holds a list of group entity this user belongs to. 
+	private ArrayList<AppRole> directReports;
+
+	// The groups holds a list of group entity this user belongs to.
 	private ArrayList<Group> groups;
 
 	// The roles holds a list of role entity this user belongs to.
 	private ArrayList<Group> roles;
-	
-	
+
+
 	/**
 	 * The constructor for the User class. Initializes the dynamic lists and managerDisplayname variables.
 	 */
-	public User(){
+	public AppRole(){
 		directReports = null;
 		groups = new ArrayList<Group>();
 		roles = new ArrayList<Group>();
