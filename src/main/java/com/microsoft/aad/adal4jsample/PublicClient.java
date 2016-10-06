@@ -64,6 +64,9 @@ public class PublicClient {
             result = future.get();
 
 
+
+
+
             String urlPath = "";
             urlPath = "https://graph.windows.net/%s/users?api-version=1.6";
          //   urlPath = "https://graph.windows.net/me?api-version=1.6";
@@ -93,17 +96,17 @@ public class PublicClient {
   //"objectId": "ee8aa778-f801-44fd-b9ca-7ea5129ef4bd", for adal4jsamplevero
 
             //urlPath = "https://graph.windows.net/%s/users/%s/memberOf";
-            //urlPath = "https://graph.windows.net/%s/users/%s";
+            urlPath = "https://graph.windows.net/%s/groups";
             //urlPath = "https://graph.windows.net/%s/directoryRoles";
             //urlPath =  "https://graph.windows.net/%s/servicePrincipals/%s/appRoles?api-version=1.6"; //BEST - what are the app roles
-            urlPath = "https://graph.windows.net/%s/servicePrincipals?api-version=1.6";
+          //  urlPath = "https://graph.windows.net/%s/servicePrincipals?api-version=1.6";
           // urlPath = "https://graph.windows.net/%s/servicePrincipals?$filter=displayName+eq+'adal4jsamplevero'";
 
            // urlPath = "https://graph.windows.net/%s/servicePrincipals/%s/appRoleAssignedTo?api-version=1.6"; //BEST
             //internal user - tester1@trvijayhotmail.onmicrosoft.com
             // urlPath = "https://graph.windows.net/%s/users/tester1@trvijayhotmail.onmicrosoft.com/appRoleAssignments?api-version=1.6"; //BEST
             //external user - mrbaljit@live.com, objectId
-            urlPath = "https://graph.windows.net/%s/users/7e3ac7f3-75f2-4ff9-947d-8830714420db/appRoleAssignments?api-version=1.6"; //BEST
+       //     urlPath = "https://graph.windows.net/%s/users/7e3ac7f3-75f2-4ff9-947d-8830714420db/appRoleAssignments?api-version=1.6"; //BEST
             url = new URL(String.format(urlPath, "trvijayhotmail.onmicrosoft.com", "ee8aa778-f801-44fd-b9ca-7ea5129ef4bd")); // BEST
 
            // https://graph.windows.net/contoso.com/servicePrincipals/a5e465e4-397d-4913-b232-15500d76ea09/appRoleAssignedTo?api-version=1.5
@@ -120,7 +123,7 @@ public class PublicClient {
             JSONObject userJsonObject = JSONHelper.fetchDirectoryObjectJSONObject(response);
             System.out.println(userJsonObject.get("value"));
 
-
+          // String responseBody = EntityUtils.toString(response.getEntity());
 
             JSONArray users  = JSONHelper.fetchDirectoryObjectJSONArray(response);
 
