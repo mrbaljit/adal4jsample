@@ -22,8 +22,8 @@
 		</init-param>
 		<init-param>
 			<param-name>secret_key</param-name>
-			<!--<param-value>9jG1u+E3M6CGauyZ4eSDo3LxQa3S7cUGY8WX83aErjI=</param-value>-->
-			<param-value>O4KkDw/+Zhcm7gPXUaHbblh+GUX7TZkjk/pcTPqNFIQ=</param-value>
+			<param-value>/Kgn7yzEsF7QSxc5hMvVCZ1r+WDu3MWYGJdM8oqg+OM=</param-value>
+			<!--<param-value>O4KkDw/+Zhcm7gPXUaHbblh+GUX7TZkjk/pcTPqNFIQ=</param-value> -->
 		</init-param>
 	</filter>
 	<filter-mapping>
